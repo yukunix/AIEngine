@@ -1,0 +1,8 @@
+ShaoLin:
+
+RNN predictor for single stock/index:
+Input: historical prices - parameterized time period, e.g. past 5 days, past 10 days, etc.
+Output: prediction of next period, e.g. next day or next week, etc.
+Market data source should be configurable.
+
+
