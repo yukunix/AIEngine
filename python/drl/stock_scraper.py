@@ -21,10 +21,6 @@ class StockScraper:
         self.open_price = 0
         self.yesterday_closing_price = 0
 
-        with open(self.config.outfile, 'a') as f:
-            fl = '#'+str(self.open_price)+' '+str(self.yesterday_closing_price)
-            f.write(fl+'\n')
-
     def print_content(self, features):
         print "代码: "+str(self.code)
         print '开盘价: '+str(features[0])
@@ -48,10 +44,16 @@ class StockScraper:
         raw_content = urllib.urlopen(self.url)
         content = (raw_content.read().split(','))
         features = self.parse_content(content)
+        features += self.request_market_index(self.config.type)
+        print features
         self.append_to_file(features)
-        self.print_content(features)
+
+        # self.print_content(features)
         # data = np.array(features)
         return features
+
+    def request_market_index(self, stock_type):
+        return self.request_api_on_stock('000001', 's_'+stock_type, True)
 
     def append_to_file(self, data):
         with open(self.config.outfile, 'a') as f:
@@ -59,12 +61,22 @@ class StockScraper:
             line = ' '.join(args)
             f.write(line+'\n')
 
-    def request_api_on_stock(self, code, stock_type):
+    def request_api_on_stock(self, code, stock_type, is_index=False):
         url = self.url_base + stock_type + str(code)
         raw_content = urllib.urlopen(url)
         content = (raw_content.read().split(','))
-        data = self.parse_content(content)
+        # print content
+        # data = self.parse_content(content)
+        if is_index:
+            data = self.parse_content_on_index(content)
+        else:
+            data = self.parse_content(content)
         # data = np.array(data)
+        return data
+
+    def parse_content_on_index(self, content):
+        data = [float(x)for x in content[1:-1]]
+        data.append(float(content[-1][:-3]))
         return data
 
     def parse_content(self, content):

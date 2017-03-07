@@ -12,9 +12,9 @@ class DataUtil:
         featured_data = copy(data)
         stock_value = portfolio['stock_value']
         total = portfolio['total']
-        print 'featured data', featured_data
         featured_data += self.time_to_vec()
         featured_data += self.stock_portion(stock_value, total)
+
         # featured_data += [self.trade_confidence(buy_quantity, stock_amount)]
         '''TODO'''
         return featured_data
@@ -33,7 +33,7 @@ class DataUtil:
         elif portion <= 1:
             return [portion]+[0,0,0,0,1]
         else:
-            print "sth wrong with stock portion"
+            print "sth wrong with stock portion", portion, stock_value, total
             sys.exit(0)
 
     @staticmethod

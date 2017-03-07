@@ -4,19 +4,18 @@
 
 class Config:
     def __init__(self):
-        self.BATCH_SIZE = 32
+        self.BATCH_SIZE = 8
         self.UNCHANGED_TOLERENCE = 10
         self.EPSILON = 0.1
         self.MAXSTEP = 100
         self.MAXTIMESTEP = 200
         self.START_TIMESTEP = 50
-        self.INPUT = 21
-        self.ACTION_NUM = 5
-        self.M1 = 20
-        self.M2 = 5
+        self.INPUT = 26
+        self.M1 = 100
+        self.M2 = 50
         self.lr = 1e-6
         self.gamma = 0.015
-        self.STOCK_AMOUNT = 16
+        self.STOCK_AMOUNT = 32
         # self.TRANSACTION_AMOUNT = 100
         self.BENCHMARK_RETURN_INDEX = 14
         self.DROPOUT = 0.5
@@ -30,6 +29,9 @@ class Config:
         self.highest_sell_bid_ind = 6
         self.trade_quantity_ind = 7
         self.prev_rate_ind = 8
+        self.actions = [10000, 5000, 1000, 0, -1000, -5000, -10000]
+        self.ACTION_NUM = len(self.actions)
+
 
 
 class ASingleStockConfig:
@@ -39,4 +41,4 @@ class ASingleStockConfig:
         self.code = '601766'
         self.type = 'sh'
         self.time_interval = 2
-        self.outfile = '601766_60.txt'
+        self.outfile = '601766_37.txt'

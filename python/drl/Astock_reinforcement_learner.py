@@ -18,8 +18,7 @@ class Reinforcer:
         self.config = Config()
         self.du = DataUtil(self.config)
         self.sc = StockScraper(ASingleStockConfig())
-        self.actions = [5000, 1000, 0, -1000, -5000]
-        self.config.ACTION_NUM = len(self.actions)
+        self.config.ACTION_NUM = len(self.config.actions)
         self.memories = []
         self.W1 = tf.get_variable('W1', [self.config.INPUT, self.config.M1])
         self.b1 = tf.get_variable('b1', [self.config.M1])
@@ -32,7 +31,7 @@ class Reinforcer:
         self.current_data = []
         self.current_state = []
 
-        self.portfolio = {'fund':500000, 'stock_quantity':10000, 'current_stock_price':0, 'total': -1, 'stock_value':0}
+        self.portfolio = {'fund':500000, 'stock_quantity':50000, 'current_stock_price':0, 'total': -1, 'stock_value':0}
 
         # self.init_op = tf.initialize_all_variables()
         self.init_placeholder()
@@ -70,12 +69,12 @@ class Reinforcer:
 
     def Q_network_op(self, x):
         fc1 = tf.matmul(x, self.W1) + self.b1
-        relu1 = tf.nn.tanh(fc1)
-        relu1 = tf.nn.dropout(relu1, self.config.DROPOUT)
-        fc2 = tf.matmul(relu1, self.W2) + self.b2
-        relu2 = tf.nn.tanh(fc2)
-        relu2 = tf.nn.dropout(relu2, self.config.DROPOUT)
-        scores = tf.matmul(relu2, self.W3) + self.b3
+        tanh1 = tf.nn.tanh(fc1)
+        tanh1 = tf.nn.dropout(tanh1, self.config.DROPOUT)
+        fc2 = tf.matmul(tanh1, self.W2) + self.b2
+        tanh2 = tf.nn.tanh(fc2)
+        tanh2 = tf.nn.dropout(tanh2, self.config.DROPOUT)
+        scores = tf.matmul(tanh2, self.W3) + self.b3
         scores = tf.squeeze(scores)
         return scores
 
@@ -96,9 +95,10 @@ class Reinforcer:
         for i in range(len(new_datas)):
             port = new_portfolios[i]
             data = new_datas[i]
-            for action in self.actions:
+            for action in self.config.actions:
                 action = self.action_policy(action, port)
                 port_to_be_evaluated = self.update_portfolio_after_action(port, action)
+                # print "predicting...", port_to_be_evaluated, action
                 state_to_be_evaluated = self.du.preprocess_state(data, port_to_be_evaluated)
                 states_next.append(state_to_be_evaluated)
         feed[self.states_next] = states_next
@@ -111,14 +111,14 @@ class Reinforcer:
         if buy_quantity > 0:
             if buy_quantity * stock_price > fund:
                 quantity_max = fund / stock_price
-                for action in self.actions[::-1]:
+                for action in self.config.actions[::-1]:
                     if action <= quantity_max:
                         buy_quantity = action
             return buy_quantity
         elif buy_quantity < 0:
-            if buy_quantity > stock_quantity:
-                for action in self.actions:
-                    if -action < stock_quantity:
+            if -buy_quantity > stock_quantity:
+                for action in self.config.actions:
+                    if -action <= stock_quantity:
                         buy_quantity = action
             return buy_quantity
         else:
@@ -126,15 +126,16 @@ class Reinforcer:
 
     @staticmethod
     def update_portfolio_after_action(portfolio, action):
-        print 'action', action
+        # print 'action', action
         port = copy(portfolio)
         if action == 0:
             return port
         else:
-            print 'a', port['fund'], 'b', port['current_stock_price'], 'c',action
-            port['fund'] = port['fund'] - port['current_stock_price'] * action
+            # print 'a', port['fund'], 'b', port['current_stock_price'], 'c',action
+            port['fund'] -= port['current_stock_price'] * action
             port['stock_quantity'] += action
             port['stock_value'] += port['current_stock_price'] * action
+
             return port
     @staticmethod
     def update_portfolio_after_fetch_price(portfolio, new_price):
@@ -145,8 +146,17 @@ class Reinforcer:
         return port
 
     @staticmethod
+    def calc_total_with_different_price(portfolio, price):
+        return portfolio['stock_quantity'] * price + portfolio['fund']
+
+    @staticmethod
+    # def calc_reward(new_portfolio, prev_portfolio):
+    #     return 1000.0*(new_portfolio['total'] - prev_portfolio['total']) / prev_portfolio['total']
     def calc_reward(new_portfolio, prev_portfolio):
-        return 100.0*(new_portfolio['total'] - prev_portfolio['total']) / prev_portfolio['total']
+        '''reward compared to hold'''
+        print "new, ", new_portfolio
+        print "prev, ", prev_portfolio
+        return new_portfolio['total'] - Reinforcer.calc_total_with_different_price(prev_portfolio, new_portfolio['current_stock_price'])
 
     def run_epoch(self, session, save=None, load=None):
         if not os.path.exists('./save'):
@@ -175,33 +185,39 @@ class Reinforcer:
             is_exploration = random.random()
             assert self.portfolio['current_stock_price'] != 0
             if is_exploration <= self.config.EPSILON:
-                buy_quantity = random.choice(self.actions)
-
+                buy_quantity = random.choice(self.config.actions)
+                print "random"
             else:
                 candidates = []
 
-                for action in self.actions:
+                for action in self.config.actions:
                     action = self.action_policy(action, self.portfolio)
                     candidate_portfolio = self.update_portfolio_after_action(self.portfolio, action)
                     candidate_state = self.du.preprocess_state(self.current_data, candidate_portfolio)
                     candidates.append(candidate_state)
                 max_q_ind = sess.run(self.prediction, feed_dict={self.states: candidates})
-                buy_quantity = self.actions[max_q_ind]
-
+                buy_quantity = self.config.actions[max_q_ind]
+            '''prevent unrealistic quantity'''
+            buy_quantity = self.action_policy(buy_quantity, self.portfolio)
             '''fetch!!!'''
-            time.sleep(self.sc.config.time_interval)
+            # time.sleep(self.sc.config.time_interval)
             new_data = self.sc.request_api()
             '''update my portfolio & get reward'''
+            port_before_action = copy(self.portfolio)
             new_portfolio = self.update_portfolio_after_action(self.portfolio, buy_quantity)
-            assert (new_portfolio['current_stock_price'] * new_portfolio['stock_quantity'] + new_portfolio['fund']) == new_portfolio['total']
+            if (new_portfolio['current_stock_price'] * new_portfolio['stock_quantity'] + new_portfolio['fund']) != new_portfolio['total']:
+                print (new_portfolio['current_stock_price'] * new_portfolio['stock_quantity'] + new_portfolio['fund']), new_portfolio['total']
+                print "*&&&*^*^&*^(&*&^%*&^%*&^"
             self.portfolio = new_portfolio
+            print "here"
             self.current_state = self.du.preprocess_state(self.current_data, self.portfolio)
+            print "outhere"
             new_price = new_data[self.config.current_ind]
             new_portfolio = self.update_portfolio_after_fetch_price(new_portfolio, new_price)
             assert (new_portfolio['current_stock_price'] * new_portfolio['stock_quantity'] + new_portfolio['fund']) == new_portfolio['total']
 
-            reward = self.calc_reward(new_portfolio, self.portfolio)
-
+            reward = self.calc_reward(new_portfolio, port_before_action)
+            print "################### reward : ", reward, "####################"
 
             '''now current state is a state where price is old while action has been performed'''
             '''new_state is a state where price is new and with new portfolio, but has not made furthur action yet'''
@@ -210,19 +226,27 @@ class Reinforcer:
             '''update data and portfolio'''
             self.current_data = new_data
             self.portfolio = new_portfolio
+            print "action taken: ", buy_quantity
+            print "current portfolio: ", new_portfolio
+            print "total: ", new_portfolio['total']
+            print "histroy: ", len(self.memories)
+            print "wait for next tick ................\n"
 
-            if len(self.memories) > 10*self.config.BATCH_SIZE:
-                start_ind = random.randint(0,len(self.memories)-self.config.BATCH_SIZE)
-                batch = self.memories[start_ind:start_ind+self.config.BATCH_SIZE]
+            if len(self.memories) > 2*self.config.BATCH_SIZE:
+                random.shuffle(self.memories)
+                batch = self.memories[:self.config.BATCH_SIZE]
                 '''batch BS*I'''
                 feed = self.build_feed_dict(batch)
                 scores1, scores2, losses, loss, _ = sess.run([self.predict_scores, self.viewing_scores, self.losses, self.loss, self.train_op], feed_dict=feed)
                 print loss
+                if len(self.memories) % 100 == 0:
+                    self.saver.save(sess, './save/drl_model')
+
 
 if __name__ == '__main__':
     cc = Reinforcer()
     with tf.Session() as sess:
-        cc.run_epoch(sess)
+        cc.run_epoch(sess, load='./save/drl_model')
 
 
 
