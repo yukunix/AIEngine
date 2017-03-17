@@ -1,13 +1,13 @@
 # coding = utf-8
 """author = jingyuan zhang"""
-from config import Config
+from drl.config import Config
 import tensorflow as tf
 import os
 import random
 import numpy as np
-from stock_scraper import StockScraper
-from data_util import DataUtil
-from config import ASingleStockConfig
+from drl.stock_scraper import StockScraper
+from drl.data_util import DataUtil
+from drl.config import ASingleStockConfig
 import time
 import sys
 from copy import copy
@@ -154,8 +154,8 @@ class Reinforcer:
     #     return 1000.0*(new_portfolio['total'] - prev_portfolio['total']) / prev_portfolio['total']
     def calc_reward(new_portfolio, prev_portfolio):
         '''reward compared to hold'''
-        print "new, ", new_portfolio
-        print "prev, ", prev_portfolio
+        print("new, ", new_portfolio)
+        print("prev, ", prev_portfolio)
         return new_portfolio['total'] - Reinforcer.calc_total_with_different_price(prev_portfolio, new_portfolio['current_stock_price'])
 
     def run_epoch(self, session, save=None, load=None):
@@ -169,7 +169,7 @@ class Reinforcer:
         while True:
             if self.portfolio['total'] == -1:
                 init_data = self.sc.request_api()
-                print init_data
+                print(init_data)
                 if init_data[self.config.open_price_ind]:
                     # assert init_data[self.config.open_price_ind] == init_data[self.config.current_ind]
                     self.portfolio['current_stock_price'] = init_data[self.config.current_ind]
@@ -179,14 +179,14 @@ class Reinforcer:
                     self.current_state = self.du.preprocess_state(init_data, self.portfolio)
                     self.config.INPUT = len(self.current_state)
                 else:
-                    print "market closed or stock halts"
+                    print("market closed or stock halts")
                     sys.exit(0)
-                print self.config.INPUT
+                print(self.config.INPUT)
             is_exploration = random.random()
             assert self.portfolio['current_stock_price'] != 0
             if is_exploration <= self.config.EPSILON:
                 buy_quantity = random.choice(self.config.actions)
-                print "random"
+                print("random")
             else:
                 candidates = []
 
@@ -206,18 +206,18 @@ class Reinforcer:
             port_before_action = copy(self.portfolio)
             new_portfolio = self.update_portfolio_after_action(self.portfolio, buy_quantity)
             if (new_portfolio['current_stock_price'] * new_portfolio['stock_quantity'] + new_portfolio['fund']) != new_portfolio['total']:
-                print (new_portfolio['current_stock_price'] * new_portfolio['stock_quantity'] + new_portfolio['fund']), new_portfolio['total']
-                print "*&&&*^*^&*^(&*&^%*&^%*&^"
+                print(new_portfolio['current_stock_price'] * new_portfolio['stock_quantity'] + new_portfolio['fund']), new_portfolio['total']
+                print("*&&&*^*^&*^(&*&^%*&^%*&^")
             self.portfolio = new_portfolio
-            print "here"
+            print("here")
             self.current_state = self.du.preprocess_state(self.current_data, self.portfolio)
-            print "outhere"
+            print("outhere")
             new_price = new_data[self.config.current_ind]
             new_portfolio = self.update_portfolio_after_fetch_price(new_portfolio, new_price)
             assert (new_portfolio['current_stock_price'] * new_portfolio['stock_quantity'] + new_portfolio['fund']) == new_portfolio['total']
 
             reward = self.calc_reward(new_portfolio, port_before_action)
-            print "################### reward : ", reward, "####################"
+            print("################### reward : ", reward, "####################")
 
             '''now current state is a state where price is old while action has been performed'''
             '''new_state is a state where price is new and with new portfolio, but has not made furthur action yet'''
@@ -226,11 +226,11 @@ class Reinforcer:
             '''update data and portfolio'''
             self.current_data = new_data
             self.portfolio = new_portfolio
-            print "action taken: ", buy_quantity
-            print "current portfolio: ", new_portfolio
-            print "total: ", new_portfolio['total']
-            print "histroy: ", len(self.memories)
-            print "wait for next tick ................\n"
+            print("action taken: ", buy_quantity)
+            print("current portfolio: ", new_portfolio)
+            print("total: ", new_portfolio['total'])
+            print("histroy: ", len(self.memories))
+            print("wait for next tick ................\n")
 
             if len(self.memories) > 2*self.config.BATCH_SIZE:
                 random.shuffle(self.memories)
@@ -238,7 +238,7 @@ class Reinforcer:
                 '''batch BS*I'''
                 feed = self.build_feed_dict(batch)
                 scores1, scores2, losses, loss, _ = sess.run([self.predict_scores, self.viewing_scores, self.losses, self.loss, self.train_op], feed_dict=feed)
-                print loss
+                print(loss)
                 if len(self.memories) % 100 == 0:
                     self.saver.save(sess, './save/drl_model')
 

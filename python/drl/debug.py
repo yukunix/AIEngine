@@ -1,4 +1,4 @@
-from config import Config
+from drl.config import Config
 
 def action_policy(buy_quantity, portfolio, config):
     stock_price = portfolio['current_stock_price']
@@ -25,8 +25,8 @@ def action_policy(buy_quantity, portfolio, config):
 def main():
     config = Config()
     portfolio = {'current_stock_price': 10, 'stock_quantity': 0, 'fund': 12323, 'total':200000}
-    print action_policy(10000, portfolio, config)
-    print action_policy(-10000, portfolio, config)
+    print(action_policy(10000, portfolio, config))
+    print(action_policy(-10000, portfolio, config))
 
 if __name__ == '__main__':
     main()

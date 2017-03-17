@@ -1,6 +1,6 @@
 import numpy as np
 from numpy import ndarray as nd
-from config import Config
+from drl.config import Config
 import sys
 from copy import copy
 from datetime import datetime as dt
@@ -33,7 +33,7 @@ class DataUtil:
         elif portion <= 1:
             return [portion]+[0,0,0,0,1]
         else:
-            print "sth wrong with stock portion", portion, stock_value, total
+            print("sth wrong with stock portion", portion, stock_value, total)
             sys.exit(0)
 
     @staticmethod

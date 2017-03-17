@@ -7,9 +7,15 @@ import datetime
 import numpy as np
 import time
 import pickle
-from config import ASingleStockConfig
+from drl.config import ASingleStockConfig
 # url_base = 'http://hq.sinajs.cn/list='
 
+import sys
+if sys.version_info[0] == 3:
+    from urllib.request import urlopen # @UnresolvedImport for PyDev
+else:
+    from urllib import urlopen  # @UnresolvedImport for PyDev
+    
 class StockScraper:
     def __init__(self, config):
         self.date = datetime.date.today()
@@ -22,30 +28,31 @@ class StockScraper:
         self.yesterday_closing_price = 0
 
     def print_content(self, features):
-        print "代码: "+str(self.code)
-        print '开盘价: '+str(features[0])
-        print '昨收: '+str(features[1])
-        print '现价: '+str(features[2])
-        print '最高: '+str(features[3])
-        print '最低: '+str(features[4])
-        print '买一价: '+str(features[5])
-        print '卖一价: '+str(features[6])
-        print '交易量: '+str(features[7])
+        print("代码: "+str(self.code))
+        print('开盘价: '+str(features[0]))
+        print('昨收: '+str(features[1]))
+        print('现价: '+str(features[2]))
+        print('最高: '+str(features[3]))
+        print('最低: '+str(features[4]))
+        print('买一价: '+str(features[5]))
+        print('卖一价: '+str(features[6]))
+        print('交易量: '+str(features[7]))
         reward = features[-1]
         if reward > 0:
-            print colored(('涨跌幅: '+str(reward)+'%'), 'red')
+            print(colored(('涨跌幅: '+str(reward)+'%'), 'red'))
         elif reward == 0:
-            print '涨跌幅: '+str(reward)+'%'
+            print('涨跌幅: '+str(reward)+'%')
         else:
-            print colored(('涨跌幅: '+str(reward)+'%'), 'green')
-        print
+            print(colored(('涨跌幅: '+str(reward)+'%'), 'green'))
+        print()
 
     def request_api(self):
-        raw_content = urllib.urlopen(self.url)
-        content = (raw_content.read().split(','))
+        #raw_content = urlopen(self.url)
+        with urlopen(self.url) as raw_content:
+            content = (raw_content.read().decode("latin1").split(','))
         features = self.parse_content(content)
         features += self.request_market_index(self.config.type)
-        print features
+        print(features)
         self.append_to_file(features)
 
         # self.print_content(features)
@@ -63,8 +70,9 @@ class StockScraper:
 
     def request_api_on_stock(self, code, stock_type, is_index=False):
         url = self.url_base + stock_type + str(code)
-        raw_content = urllib.urlopen(url)
-        content = (raw_content.read().split(','))
+        #raw_content = urllib.urlopen(url)
+        with urlopen(url) as raw_content:
+            content = (raw_content.read().decode("latin1").split(','))
         # print content
         # data = self.parse_content(content)
         if is_index:
@@ -104,13 +112,13 @@ class StockScraper:
 
 
 def main():
-    print
-    print '********************* BEGINNING *********************'
-    print
+    print()
+    print('********************* BEGINNING *********************')
+    print()
     config = ASingleStockConfig()
     stock = StockScraper(config)
     stock.request_api()
-    print '************************ END ***********************'
+    print('************************ END ***********************')
 
 
 if __name__ == '__main__':
