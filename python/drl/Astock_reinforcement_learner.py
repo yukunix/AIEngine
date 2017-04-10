@@ -1,13 +1,13 @@
 # coding = utf-8
 """author = jingyuan zhang"""
-from drl.config import Config
+from config import Config
 import tensorflow as tf
 import os
 import random
 import numpy as np
-from drl.stock_scraper import StockScraper
-from drl.data_util import DataUtil
-from drl.config import ASingleStockConfig
+from stock_scraper import StockScraper
+from data_util import DataUtil
+from config import ASingleStockConfig
 import time
 import sys
 from copy import copy
