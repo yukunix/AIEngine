@@ -1,4 +1,5 @@
-from dl.rnn import lstm
+
+from lstm import *
 import time
 import matplotlib.pyplot as plt
 
@@ -29,11 +30,11 @@ if __name__=='__main__':
 
     print('> Loading data... ')
 
-    X_train, y_train, X_test, y_test = lstm.load_data('sp500.csv', seq_len, True)
+    X_train, y_train, X_test, y_test = load_data('sp500.csv', seq_len, True)
 
     print('> Data Loaded. Compiling...')
 
-    model = lstm.build_model([1, 50, 100, 1])
+    model = build_model([1, 50, 100, 1])
 
     model.fit(
         X_train,
@@ -42,9 +43,9 @@ if __name__=='__main__':
         nb_epoch=epochs,
         validation_split=0.05)
 
-    #predictions = lstm.predict_sequences_multiple(model, X_test, seq_len, 50)
-    #predicted = lstm.predict_sequence_full(model, X_test, seq_len)
-    predicted = lstm.predict_point_by_point(model, X_test)        
+    #predictions = predict_sequences_multiple(model, X_test, seq_len, 50)
+    #predicted = predict_sequence_full(model, X_test, seq_len)
+    predicted = predict_point_by_point(model, X_test)        
     
     print('Training duration (s) : ', time.time() - global_start_time)
     #plot_results_multiple(predictions, y_test, 50)
