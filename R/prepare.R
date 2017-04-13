@@ -11,8 +11,12 @@ myfunction<-function(){
     colnames(obj)[2]<-paste("col",i,sep="")
     total=merge(total,obj)
   }
+  obj=read.csv("/Users/yukunix/git/AIEngine/SP500_EOD.csv")
+  obj<-obj[c("Date","Close")]
+  colnames(obj)[2]<-"sp500"
+  total=merge(total,obj)
   return (total)
 }
 
-total<-myfunction()
-show(total)
+total1<-myfunction()
+show(total1)
