@@ -1,6 +1,6 @@
 import numpy as np
 from numpy import ndarray as nd
-from config import Config
+from drl.kay.config import Config
 import sys
 from copy import copy
 from datetime import datetime as dt

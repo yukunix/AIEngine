@@ -1,0 +1,11 @@
+Jingyuan:
+
+Reinforce Learner for single stock/index: 
+State: recent historical prices
+Action: buy/sell various level of cash reserve, e.g. 10%, 30%, 50% of available cash
+Reward: cumulative cash plus market price of postion
+
+Parameters include RL parameters, market data source, action plans, reward function etc.
+
+
+

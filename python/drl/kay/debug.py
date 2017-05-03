@@ -1,4 +1,4 @@
-from drl.config import Config
+from drl.kay.config import Config
 
 def action_policy(buy_quantity, portfolio, config):
     stock_price = portfolio['current_stock_price']

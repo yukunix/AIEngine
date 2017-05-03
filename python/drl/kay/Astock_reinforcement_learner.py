@@ -1,13 +1,13 @@
 # coding = utf-8
 """author = jingyuan zhang"""
-from config import Config
+from drl.kay.config import Config
 import tensorflow as tf
 import os
 import random
 import numpy as np
-from stock_scraper import StockScraper
-from data_util import DataUtil
-from config import ASingleStockConfig
+from drl.kay.stock_scraper import StockScraper
+from drl.kay.data_util import DataUtil
+from drl.kay.config import ASingleStockConfig
 import time
 import sys
 from copy import copy
@@ -33,7 +33,6 @@ class Reinforcer:
 
         self.portfolio = {'fund':500000, 'stock_quantity':50000, 'current_stock_price':0, 'total': -1, 'stock_value':0}
 
-        # self.init_op = tf.initialize_all_variables()
         self.init_placeholder()
         scores = self.batch_scoring_op()
         next_step_scores = self.batch_predict_op()
@@ -41,7 +40,8 @@ class Reinforcer:
         self.add_step_predict_op()
         self.saver = tf.train.Saver()
 
-        self.init_op = tf.initialize_all_variables()
+        # self.init_op = tf.initialize_all_variables()
+        self.init_op = tf.global_variables_initializer()
 
     def init_placeholder(self):
         self.states = tf.placeholder(tf.float32)
@@ -246,10 +246,5 @@ class Reinforcer:
 if __name__ == '__main__':
     cc = Reinforcer()
     with tf.Session() as sess:
-        cc.run_epoch(sess, load='./save/drl_model')
-
-
-
-
-
-
+#         cc.run_epoch(sess, load='./save/drl_model')
+        cc.run_epoch(sess)

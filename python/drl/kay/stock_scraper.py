@@ -7,7 +7,7 @@ import datetime
 import numpy as np
 import time
 import pickle
-from config import ASingleStockConfig
+from drl.kay.config import ASingleStockConfig
 # url_base = 'http://hq.sinajs.cn/list='
 
 import sys
