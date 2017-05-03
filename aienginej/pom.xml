@@ -36,9 +36,9 @@
 		</dependency>
 
 		<dependency>
-			<groupId>eu.verdelhan</groupId>
-			<artifactId>ta4j</artifactId>
-			<version>0.9-SNAPSHOT</version>
+		    <groupId>eu.verdelhan</groupId>
+		    <artifactId>ta4j</artifactId>
+		    <version>0.8</version>
 		</dependency>
 
 		<dependency>
