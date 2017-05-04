@@ -1,92 +1,201 @@
-# -*- coding: utf-8 -*-
-import random
+import os
 import gym
-import numpy as np
+import tensorflow as tf 
+import numpy as np 
+import random
 from collections import deque
-from keras.models import Sequential
-from keras.layers import Dense
-from keras.optimizers import RMSprop
 
-EPISODES = 5000
+# Hyper Parameters for DQN
+GAMMA = 0.9 # discount factor for target Q 
+INITIAL_EPSILON = 0.5 # starting value of epsilon
+FINAL_EPSILON = 0.01 # final value of epsilon
+REPLAY_SIZE = 10000 # experience replay buffer size
+BATCH_SIZE = 32 # size of minibatch
+
+class DQN():
+    """ 
+    Deep Q-learning Network Agent 
+    """
+    
+    def __init__(self, env, localstore='localstore', logdir='logs'):
+        # init experience replay
+        self.replay_buffer = deque()
+        # init some parameters
+        self.time_step = 0
+        self.epsilon = INITIAL_EPSILON
+        self.state_dim = env.state_dim
+        self.action_dim = env.action_dim
+        self.localstore = localstore
+
+        self.create_Q_network()
+        self.create_training_method()
+
+        # Init session
+        self.session = tf.InteractiveSession()
+        self.session.run(tf.global_variables_initializer())
+
+        # loading networks
+        self.saver = tf.train.Saver()
+        checkpoint = tf.train.get_checkpoint_state(localstore)
+        if checkpoint and checkpoint.model_checkpoint_path:
+                self.saver.restore(self.session, checkpoint.model_checkpoint_path)
+                print("Successfully loaded:", checkpoint.model_checkpoint_path)
+        else:
+                print("Could not find old network weights")
+
+        global summary_writer
+        summary_writer = tf.summary.FileWriter(logdir,graph=self.session.graph)
+
+    def create_Q_network(self):
+        # network weights
+        W1 = self.weight_variable([self.state_dim,20])
+        b1 = self.bias_variable([20])
+        W2 = self.weight_variable([20,self.action_dim])
+        b2 = self.bias_variable([self.action_dim])
+        # input layer
+        self.state_input = tf.placeholder("float",[None,self.state_dim])
+        # hidden layers
+        h_layer = tf.nn.relu(tf.matmul(self.state_input,W1) + b1)
+        # Q Value layer
+        self.Q_value = tf.matmul(h_layer,W2) + b2
 
 
-class DQNAgent:
-    def __init__(self, state_size, action_size):
-        self.state_size = state_size
-        self.action_size = action_size
-        self.memory = deque(maxlen=100000)
-        self.gamma = 0.9    # discount rate
-        self.epsilon = 1.0  # exploration rate
-        self.e_decay = .99
-        self.e_min = 0.05
-        self.learning_rate = 0.01
-        self.model = self._build_model()
+    def create_training_method(self):
+        self.action_input = tf.placeholder("float",[None,self.action_dim]) # one hot presentation
+        self.y_input = tf.placeholder("float",[None])
+        Q_action = tf.reduce_sum(tf.multiply(self.Q_value,self.action_input),reduction_indices = 1)
+        self.cost = tf.reduce_mean(tf.square(self.y_input - Q_action))
+        tf.summary.scalar("loss",self.cost)
+        global merged_summary_op
+        merged_summary_op = tf.summary.merge_all()
+        self.optimizer = tf.train.AdamOptimizer(0.0001).minimize(self.cost)
 
-    def _build_model(self):
-        # Neural Net for Deep-Q learning Model
-        model = Sequential()
-        model.add(Dense(20, input_dim=self.state_size, activation='tanh'))
-        model.add(Dense(20, activation='tanh', kernel_initializer='uniform'))
-        model.add(Dense(self.action_size, activation='linear'))
-        model.compile(loss='mse',
-                      optimizer=RMSprop(lr=self.learning_rate))
-        return model
+    def perceive(self,state,action,reward,next_state,done):
+        one_hot_action = np.zeros(self.action_dim)
+        one_hot_action[action] = 1
+        self.replay_buffer.append((state,one_hot_action,reward,next_state,done))
+        if len(self.replay_buffer) > REPLAY_SIZE:
+            self.replay_buffer.popleft()
 
-    def remember(self, state, action, reward, next_state, done):
-        self.memory.append((state, action, reward, next_state, done))
+        if len(self.replay_buffer) > BATCH_SIZE:
+            self.train_Q_network()
 
-    def act(self, state):
-        if np.random.rand() <= self.epsilon:
-            return random.randrange(self.action_size)
-        act_values = self.model.predict(state)
-        return np.argmax(act_values[0])  # returns action
+    def train_Q_network(self):
+        self.time_step += 1
+        # Step 1: obtain random minibatch from replay memory
+        minibatch = random.sample(self.replay_buffer,BATCH_SIZE)
+        state_batch = [data[0] for data in minibatch]
+        action_batch = [data[1] for data in minibatch]
+        reward_batch = [data[2] for data in minibatch]
+        next_state_batch = [data[3] for data in minibatch]
 
-    def replay(self, batch_size):
-        batch_size = min(batch_size, len(self.memory))
-        minibatch = random.sample(self.memory, batch_size)
-        X = np.zeros((batch_size, self.state_size))
-        Y = np.zeros((batch_size, self.action_size))
-        for i in range(batch_size):
-            state, action, reward, next_state, done = minibatch[i]
-            target = self.model.predict(state)[0]
+        # Step 2: calculate y
+        y_batch = []
+        Q_value_batch = self.Q_value.eval(feed_dict={self.state_input:next_state_batch})
+        for i in range(0,BATCH_SIZE):
+            done = minibatch[i][4]
             if done:
-                target[action] = reward
-            else:
-                target[action] = reward + self.gamma * \
-                            np.amax(self.model.predict(next_state)[0])
-            X[i], Y[i] = state, target
-        self.model.fit(X, Y, batch_size=batch_size, epochs=1, verbose=0)
-        if self.epsilon > self.e_min:
-            self.epsilon *= self.e_decay
+                y_batch.append(reward_batch[i])
+            else :
+                y_batch.append(reward_batch[i] + GAMMA * np.max(Q_value_batch[i]))
 
-    def load(self, name):
-        self.model.load_weights(name)
+        self.optimizer.run(feed_dict={
+            self.y_input:y_batch,
+            self.action_input:action_batch,
+            self.state_input:state_batch
+            })
+        summary_str = self.session.run(merged_summary_op,feed_dict={
+                self.y_input : y_batch,
+                self.action_input : action_batch,
+                self.state_input : state_batch
+                })
+        summary_writer.add_summary(summary_str,self.time_step)
 
-    def save(self, name):
-        self.model.save_weights(name)
+        # save network every 1000 iteration
+        if self.time_step % 1000 == 0:
+            savednetwork = self.localstore
+            if not os.path.exists(savednetwork):
+                os.makedirs(savednetwork)
+            self.saver.save(self.session, savednetwork+"/dqn", global_step = self.time_step)
 
-if __name__ == "__main__":
-    env = gym.make('CartPole-v0')
-    state_size = env.observation_space.shape[0]
-    action_size = env.action_space.n
-    agent = DQNAgent(state_size, action_size)
-    # agent.load("./save/cartpole-master.h5")
+    def egreedy_action(self,state):
+        Q_value = self.Q_value.eval(feed_dict = {
+            self.state_input:[state]
+            })[0]
+        if random.random() <= self.epsilon:
+            return random.randint(0,self.action_dim - 1)
+        else:
+            return np.argmax(Q_value)
 
-    for e in range(EPISODES):
+        self.epsilon -= (INITIAL_EPSILON - FINAL_EPSILON)/10000
+
+    def action(self,state):
+        return np.argmax(self.Q_value.eval(feed_dict = {
+            self.state_input:[state]
+            })[0])
+
+    def weight_variable(self,shape):
+        initial = tf.truncated_normal(shape)
+        return tf.Variable(initial)
+
+    def bias_variable(self,shape):
+        initial = tf.constant(0.01, shape = shape)
+        return tf.Variable(initial)
+
+# ---------------------------------------------------------
+# Hyper Parameters
+ENV_NAME = 'CartPole-v0'
+EPISODE = 10000 # Episode limitation
+STEP = 300 # Step limitation in an episode
+TEST = 10 # The number of experiment test every 100 episode
+
+def main():
+    # initialize OpenAI Gym env and dqn agent
+    env = gym.make(ENV_NAME)
+    agent = DQN(env)
+
+    for episode in range(EPISODE):
+        # initialize task
         state = env.reset()
-        state = np.reshape(state, [1, state_size])
-        for time in range(1000):
-            env.render()
-            action = agent.act(state)
-            next_state, reward, done, _ = env.step(action)
-            reward = reward if not done else -10
-            next_state = np.reshape(next_state, [1, state_size])
-            agent.remember(state, action, reward, next_state, done)
+        # Train 
+        for step in range(STEP):
+            action = agent.egreedy_action(state) # e-greedy action for train
+            next_state,reward,done,_ = env.step(action)
+            # Define reward for agent
+            reward_agent = -1 if done else 0.1
+            agent.perceive(state,action,reward,next_state,done)
             state = next_state
-            if done or time == 999:
-                print("episode: {}/{}, score: {}, e: {:.2}"
-                        .format(e, EPISODES, time, agent.epsilon))
+            if done:
                 break
-        agent.replay(32)
-        # if e % 10 == 0:
-            # agent.save("./save/cartpole.h5")
+        # Test every 100 episodes
+        if episode % 100 == 0:
+            total_reward = 0
+            for i in range(TEST):
+                state = env.reset()
+                for j in range(STEP):
+                    env.render()
+                    action = agent.action(state) # direct action for test
+                    state,reward,done,_ = env.step(action)
+                    total_reward += reward
+                    if done:
+                        break
+            ave_reward = total_reward/TEST
+            print('episode: ',episode,'Evaluation Average Reward:',ave_reward)
+            if ave_reward >= 200:
+                break
+
+    # save results for uploading
+    env.monitor.start('gym_results/CartPole-v0-experiment-1',force = True)
+    for i in range(100):
+        state = env.reset()
+        for j in range(200):
+            env.render()
+            action = agent.action(state) # direct action for test
+            state,reward,done,_ = env.step(action)
+            total_reward += reward
+            if done:
+                break
+    env.monitor.close()
+
+if __name__ == '__main__':
+    main()
