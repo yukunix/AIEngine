@@ -1,10 +1,46 @@
 import quandl as qd
 import numpy as np
+import marketdata.MarketProvider as MarketProvider
 
-qd.ApiConfig.api_key = 'Uk8aW7H-x7bvsqD2wH98'
+class MarketProviderFactory:
+	
+	def __init__(self, source, start, end, interval):
+		## initialize quandl, start downloading file for the time range
+		## interval: e.g. 1d
+		
+		qd.ApiConfig.api_key = 'Uk8aW7H-x7bvsqD2wH98'
 
-my_data = qd.get('WIKI/AAPL', start_date='2008-01-01', end_date='2010-01-01')
-# print(my_data)
+		my_data = qd.get('WIKI/AAPL', start_date='2008-01-01', end_date='2010-01-01')
+		# print(my_data)
+	
+	def getMarketProvider(type, **kwargs):
+		# type cloase_price: **kwargs: {period:5d}
+		# type MA: {period: 15d}
+		# type MACD: {period1:5d, period2:10d}
+		if (type == 'close_price'):
+			return ClosePriceProvider(kwargs['period'])
+		return MarketProvider()
+		
+class ClosePriceProvider(MarketProvider):
+
+	current_position
+
+	def __init__(data, period):
+		# 
+		pass
+
+	def next():
+		## calculation....
+		return list(all types of data)
+
+class MACDProvider(MarketProvider):
+
+	def __init__(period1, period2):
+		pass
+		
+	def next():
+		# calculate MACD
+		return maValue
 
 
 # input: data file (format pandas)
