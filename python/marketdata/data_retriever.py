@@ -4,13 +4,14 @@ import marketdata.MarketProvider as MarketProvider
 
 class MarketProviderFactory:
 	
-	def __init__(self, source, start, end, interval):
+	def __init__(self, source, start, end, interval, localstore):
 		## initialize quandl, start downloading file for the time range
 		## interval: e.g. 1d
+		## if not in localstore, download from source, then persist to localstore with key: sym-start-end-quandl-params, otherwise load local file.
 		
 		qd.ApiConfig.api_key = 'Uk8aW7H-x7bvsqD2wH98'
-
-		my_data = qd.get('WIKI/AAPL', start_date='2008-01-01', end_date='2010-01-01')
+		
+		self.my_data = qd.get('WIKI/AAPL', start_date='2008-01-01', end_date='2010-01-01')
 		# print(my_data)
 	
 	def getMarketProvider(type, **kwargs):
