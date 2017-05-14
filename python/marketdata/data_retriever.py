@@ -4,35 +4,36 @@ import marketdata.MarketProvider as MarketProvider
 
 class MarketProviderFactory:
 	
-	def __init__(self, source, start, end, interval, localstore):
+	def __init__(self, source, sym, start, end, interval, localstore):
 		## initialize quandl, start downloading file for the time range
 		## interval: e.g. 1d
 		## if not in localstore, download from source, then persist to localstore with key: sym-start-end-quandl-params, otherwise load local file.
 		
-		qd.ApiConfig.api_key = 'Uk8aW7H-x7bvsqD2wH98'
-		
-		self.my_data = qd.get('WIKI/AAPL', start_date='2008-01-01', end_date='2010-01-01')
-		# print(my_data)
+		if (source == 'qundle'):				
+			qd.ApiConfig.api_key = 'Uk8aW7H-x7bvsqD2wH98'
+			self.data = qd.get('WIKI/'+sym, start_date=start, end_date=end)
+			
+		print(self.data.head(5))
 	
 	def getMarketProvider(type, **kwargs):
 		# type cloase_price: **kwargs: {period:5d}
 		# type MA: {period: 15d}
 		# type MACD: {period1:5d, period2:10d}
-		if (type == 'close_price'):
-			return ClosePriceProvider(kwargs['period'])
-		return MarketProvider()
+		if (type == 'close_price_ma'):
+			return ClosePriceProvider(self.data, kwargs['period'])
+		else:
+			raise ValueError('unknown type: ' + type)
 		
-class ClosePriceProvider(MarketProvider):
+class ClosePriceMAProvider(MarketProvider):
 
-	current_position
+	def __init__(self, data, period):
+		self.ma=pd.Series.rolling(data['Close'], period).mean()
+		self.current_position = 0
 
-	def __init__(data, period):
-		# 
-		pass
+	def next(self):
+		self.current_position += 1
+		return self.ma[self.current_position-1]
 
-	def next():
-		## calculation....
-		return list(all types of data)
 
 class MACDProvider(MarketProvider):
 
