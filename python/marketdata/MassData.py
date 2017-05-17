@@ -58,17 +58,3 @@ class MassData:
     #         return ClosePriceProvider(self.data, kwargs['period'])
     #     else:
     #         raise ValueError('unknown type: ' + type)
-
-    def is_existing_df(self):
-        """1. check the existence of local '/dataWarehouse' directory to store data, if no then create one.
-        2. check if the data file already exists, return True if file already exists, return False otherwise"""
-        path_dataWarehouse = MassData.path_cwd + '/dataWarehouse'
-        if not os.path.exists(path_dataWarehouse):
-            print('Creating new directory \'~/dataWarehouse\'... at current working directory.')
-            os.makedirs(path_dataWarehouse)
-        if os.path.isfile(self.path):
-            print('There exists a same file in the data warehouse, loading data from local disk.')
-            return True
-        else:
-            print('There is NO same file, now retrieving from {0} ...'.format(self.source.upper()))
-            return False
