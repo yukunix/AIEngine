@@ -9,19 +9,40 @@ class Portfolio(object):
     a portfolio of stock(s)
     '''
 
-
-    def __init__(self, *args):
+    def __init__(self, cash):
         '''
-        *args: a list of stock symbols
+        cash: total available cash for the portfolio
+        '''
+        self.cash = cash
+    
+    def update(self, sym, side, quantity, price):
+        '''
+        sym: traded stock
+        side: long/short
+        quantity: traded quantity
+        price: traded price
         '''
         pass
     
-    def value(self):
+    def market_value(self):
         '''
-        get marked to market value of the portfolio
+        get marked to market value of the portfolio, including both positions and cash
         return $
         '''
         pass
     
+    def cash_value(self):
+        '''
+        get current available cash of the portoflio
+        return $
+        '''
+        pass
+    
+    def position_value(self, sym):
+        '''
+        get marked to market value of a stock in the portfolio
+        return $
+        '''
+        pass
     
         
