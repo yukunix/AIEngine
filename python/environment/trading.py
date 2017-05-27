@@ -5,6 +5,9 @@ Created on 20 May 2017
 '''
 
 from tensorforce.environments import Environment
+from oms.oms import OMS
+from oms.execution import ExecutionService, SingleStockExecutionSimulator
+from portfolio.portfolio import Portfolio, SharpePortfolio
 
 class TradingEnvironment(Environment):
     '''
@@ -19,10 +22,21 @@ class TradingEnvironment(Environment):
     '''
 
 
-    def __init__(self, params):
+    def __init__(self, **kwargs):
         '''
-        Constructor
+        kwargs: {
+                execution: {single_stock, multi_stocks},
+                portfolio: {sharpe, dsharpe, ... ...} 
+                }
         '''
+        if (kwargs['execution'] == 'single_stock'):
+            self.executionservice = SingleStockExecutionSimulator(kwargs['sym'], kwargs['start'], kwargs['end'], kwargs['interval'])
+            
+        if (kwargs['portfolio'] == 'sharpe'):
+            self.portfolio = SharpePortfolio()
+            
+        self.oms = OMS(self.executionservice, self.portfolio)
+        
         
     def __str__(self):
         return 'TradingEnvironment'

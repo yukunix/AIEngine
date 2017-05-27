@@ -7,6 +7,8 @@ Created on 17 May 2017
 class Portfolio(object):
     '''
     a portfolio of stock(s)
+    
+    valued by cash + marked market positions value
     '''
 
     def __init__(self, cash):
@@ -45,4 +47,13 @@ class Portfolio(object):
         '''
         pass
     
-        
+
+class SharpePortfolio(Portfolio):
+    
+    def market_value(self):
+        '''
+        get marked to market value of the portfolio, including both positions and cash
+        return $
+        '''
+        pass
+            
