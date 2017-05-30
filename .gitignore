@@ -4,3 +4,5 @@
 python/dl/__pycache__/
 python/drl/__pycache__/
 python/drl/dqn/__pycache__/
+python/marketdata/__pycache__/
+python/marketdata/marketstore/
