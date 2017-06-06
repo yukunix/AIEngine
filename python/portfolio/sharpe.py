@@ -73,6 +73,29 @@ def tangent_portfolio(data, periods, num_portfolios=25000, ret_results=False):
         return (max_sharpe_port, min_vol_port)
 
 
+def lagrange_tangent_portfolio(data,periods):
+
+    returns = data.pct_change()
+    mean_daily_returns = returns.mean()
+    cov_matrix = np.mat(returns.cov())
+
+    #reverse the covariance matrix
+    re_cov=cov_matrix.I
+
+    # get the weights using formula
+    tangent=np.dot(re_cov,mean_daily_returns)
+
+    # rebalance weights to sum to 1
+    weights=tangent/np.sum(tangent)
+
+    p=np.zeros(len(weights.T))
+
+    for i in range(len(p)):
+        p[i]=(weights.T)[i]
+
+    return p
+
+
 def plot_annualised_sharpe(results_frame, max_sharpe_port, min_vol_port):
     '''
     plot all weights with x axis return and y axis volatility, maximum sharpe ratio point and minimum volatility point 
@@ -108,12 +131,15 @@ if __name__ == "__main__":
     
     
     (max_sharpe_port, min_vol_port, results_frame) = tangent_portfolio(data, periods, 25000, True)
-    
+     
     print('max sharpe portfolio')
     print(max_sharpe_port.to_string())
     print('min volatility portfolio')
     print(min_vol_port.to_string())
     
+    print(lagrange_tangent_portfolio(data, periods))
+    
     plot_annualised_sharpe(results_frame, max_sharpe_port, min_vol_port)
     
+    #data.plot(lw=1,colormap='jet',marker='.',markersize=1,title='Timeseries')
     

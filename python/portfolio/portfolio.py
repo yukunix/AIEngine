@@ -4,6 +4,8 @@ Created on 17 May 2017
 @author: Yukun
 '''
 
+from portfolio.order import Side
+
 class Portfolio(object):
     '''
     a portfolio of stock(s)
@@ -16,15 +18,25 @@ class Portfolio(object):
         cash: total available cash for the portfolio
         '''
         self.cash = cash
+        self.positions = dict()
     
-    def update(self, sym, side, quantity, price):
+    def update(self, sym, side, quantity, price, consideration):
         '''
         sym: traded stock
         side: long/short
         quantity: traded quantity
         price: traded price
+        consideration: total benefit/cost of the transaction
         '''
-        pass
+        
+        if Side.Buy == side:
+            self.positions[sym] = self.positions.get(sym, 0) + quantity
+            self.cash -= consideration
+        else:
+            self.positions[sym] = self.positions.get(sym, 0) - quantity
+            self.cash += consideration
+        
+        
     
     def market_value(self):
         '''
@@ -47,13 +59,25 @@ class Portfolio(object):
         '''
         pass
     
+    def portfolio_value(self):
+        '''
+        use valuer instead
+        
+        A value to measure the portfolio, for example, 
+        Sharpe ratio(return to volatility), Sortino ratio(return to downside deviation), 
+        Jensen's alpha(risk-adjusted), Treynor(reward-to-volatility) ratio, 
+        or simply market value. 
+        '''
+        pass
+    
 
 class SharpePortfolio(Portfolio):
     
-    def market_value(self):
+    def portfolio_value(self):
         '''
-        get marked to market value of the portfolio, including both positions and cash
-        return $
+        use valuer instead
+        
+        return Sharpe ratio of the portfolio
         '''
         pass
             
