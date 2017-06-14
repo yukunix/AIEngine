@@ -59,12 +59,15 @@ def test_tfdqn2():
             total_reward = 0
             for i in range(TEST):
                 state = env.reset()
+                sub_reward = 0;
                 for j in range(STEP):
-                    env.render()
+#                     env.render()
                     action = agent.action(state) # direct action for test
                     state,reward,done,_ = env.step(action)
                     total_reward += reward
+                    sub_reward += reward
                     if done:
+                        print('sub reward: ', sub_reward)
                         break
             ave_reward = total_reward/TEST
             print('episode: ',episode,'Evaluation Average Reward:',ave_reward)
@@ -75,12 +78,14 @@ def test_tfdqn2():
     #env.monitor.start('gym_results/CartPole-v0-experiment-1',force = True)
     for i in range(100):
         state = env.reset()
+        total_reward = 0
         for j in range(200):
             env.render()
             action = agent.action(state) # direct action for test
             state,reward,done,_ = env.step(action)
             total_reward += reward
             if done:
+                print('total reward:', total_reward)
                 break
     #env.monitor.close()
     

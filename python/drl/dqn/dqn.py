@@ -79,6 +79,7 @@ class DQN():
 
         if len(self.replay_buffer) > BATCH_SIZE:
             self.train_Q_network()
+            self.epsilon -= (INITIAL_EPSILON - FINAL_EPSILON)/10000
 
     def train_Q_network(self):
         self.time_step += 1
@@ -126,8 +127,6 @@ class DQN():
             return random.randint(0,self.action_dim - 1)
         else:
             return np.argmax(Q_value)
-
-        self.epsilon -= (INITIAL_EPSILON - FINAL_EPSILON)/10000
 
     def action(self,state):
         return np.argmax(self.Q_value.eval(feed_dict = {
