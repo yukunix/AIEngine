@@ -56,7 +56,7 @@ class TradingEnvironment(Environment):
         """
         Reset environment and setup for new episode.
 
-        :return: initial state
+        Returns: initial state of resetted environment.
         """
         raise NotImplementedError
 
@@ -64,16 +64,29 @@ class TradingEnvironment(Environment):
         """
         Executes action, observes next state and reward.
 
-        :param action: Action to execute
+        Args:
+            action: Action to execute.
 
-        :return: dict containing at least next_state, reward, and terminal_state
+        Returns: tuple of state (tuple), reward (float), and terminal_state (bool).
         """
         raise NotImplementedError
 
     @property
     def states(self):
+        """
+        Return the state space. Might include subdicts if multiple states are available simultaneously.
+
+        Returns: dict of state properties (shape and type).
+
+        """
         raise NotImplementedError
 
     @property
     def actions(self):
+        """
+        Return the action space. Might include subdicts if multiple actions are available simultaneously.
+
+        Returns: dict of action properties (continuous, number of actions)
+
+        """
         raise NotImplementedError
