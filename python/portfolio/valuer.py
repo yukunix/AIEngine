@@ -11,7 +11,7 @@ class PortfolioValuer(object):
     portfolio valuer
     '''
 
-    def __init__(self, params):
+    def __init__(self, *params):
         '''
         Constructor
         '''

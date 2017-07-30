@@ -14,14 +14,13 @@ class TradingEnvironment(Environment):
     '''
     An Environment of financial trading
     
-    State:
+    State: float list (last 5 close prices, SMA10, position value, cash value)
     
-    Action:
+    Action: (1, 0, -1) as BUY, HOLD, SELL
     
-    Reward:
+    Reward: position value + cash value
     
     '''
-
 
     def __init__(self, **kwargs):
         '''
@@ -32,34 +31,34 @@ class TradingEnvironment(Environment):
                 }
         '''
         if (kwargs['execution'] == 'single_stock'):
-            self.__executionservice = SingleStockExecutionSimulator(kwargs['sym'], kwargs['start'], kwargs['end'], kwargs['interval'])
+            self.__executionservice = SingleStockExecutionSimulator(kwargs['sym'], kwargs['start'], kwargs['end'])
             
         if (kwargs['portfolio'] == 'basic'):
-            self.__portfolio = Portfolio()
+            self.__portfolio = Portfolio(100000)
             
         if (kwargs['valuer'] == 'market'):
             self.__portfolio_valuer = MarketValuer()
             
         self.__oms = OMS(self.__executionservice, self.__portfolio)
         
-        
-    def __str__(self):
-        return 'TradingEnvironment'
-
-    def close(self):
+    @property
+    def states(self):
         """
-        Close environment. No other method calls possible afterwards.
+        Return the state space. Might include subdicts if multiple states are available simultaneously.
+        Returns: dict of state properties (shape and type). 
         """
-        raise NotImplementedError
+        return {'type': 'float', 'shape': (8, )}
 
-    def reset(self):
+    @property
+    def actions(self):
         """
-        Reset environment and setup for new episode.
+        Return the action space. Might include subdicts if multiple actions are available simultaneously.
 
-        Returns: initial state of resetted environment.
+        Returns: dict of action properties (continuous, number of actions)
+
         """
-        raise NotImplementedError
-
+        return {'num_actions': 3, 'continuous': False}
+    
     def execute(self, action):
         """
         Executes action, observes next state and reward.
@@ -70,23 +69,21 @@ class TradingEnvironment(Environment):
         Returns: tuple of state (tuple), reward (float), and terminal_state (bool).
         """
         raise NotImplementedError
-
-    @property
-    def states(self):
+    
+    def reset(self):
         """
-        Return the state space. Might include subdicts if multiple states are available simultaneously.
+        Reset environment and setup for new episode.
 
-        Returns: dict of state properties (shape and type).
-
+        Returns: initial state of resetted environment.
         """
         raise NotImplementedError
 
-    @property
-    def actions(self):
+    def close(self):
         """
-        Return the action space. Might include subdicts if multiple actions are available simultaneously.
-
-        Returns: dict of action properties (continuous, number of actions)
-
+        Close environment. No other method calls possible afterwards.
         """
         raise NotImplementedError
+
+    def __str__(self):
+        return 'TradingEnvironment'
+    

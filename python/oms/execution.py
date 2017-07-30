@@ -5,6 +5,8 @@ Created on 17 May 2017
 '''
 
 import random
+from marketdata.MarketData import OHLCV
+from marketdata.provider import MarketDataProvider
 
 class ExecutionService(object):
     '''
@@ -33,8 +35,9 @@ class SingleStockExecutionSimulator(ExecutionService):
     A simple execution simulator for trading a stock
     '''
         
-    def __init__(self, sym, start, end, interval):
-        self.marketprovider # create OHLCV provider
+    def __init__(self, sym, start, end):
+        marketdata = MarketDataProvider('quandl', sym, start, end)
+        self.marketprovider = OHLCV(marketdata)
         
     def no_operation(self, sym):
         self.marketprovider.next()
