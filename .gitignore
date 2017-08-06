@@ -7,3 +7,4 @@ python/drl/dqn/__pycache__/
 python/marketdata/__pycache__/
 python/marketdata/marketstore/
 python/*/__pycache__/
+python/.spyproject/
