@@ -9,15 +9,21 @@ import math as m
 
 
 #Moving Average  
-def MA(df, n):  
-    MA = pd.Series(pd.rolling_mean(df['Close'], n), name = 'MA_' + str(n))  
-    df = df.join(MA)  
+def MA(df, n):
+    # Original version
+    # MA = pd.Series(pd.rolling_mean(df['Close'], n), name = 'MA_' + str(n))
+    MA = pd.Series.rolling(df['Close'], n).mean()
+    MA = pd.Series(MA, name = 'MA_' + str(n))
+    df = df.join(MA)
     return df
 
 #Exponential Moving Average  
-def EMA(df, n):  
-    EMA = pd.Series(pd.ewma(df['Close'], span = n, min_periods = n - 1), name = 'EMA_' + str(n))  
-    df = df.join(EMA)  
+def EMA(df, n):
+    # Orignial version
+    # EMA = pd.Series(pd.ewma(df['Close'], span = n, min_periods = n - 1), name = 'EMA_' + str(n))
+    EMA = pd.Series.ewm(df['Close'], span = n, min_periods = n - 1).mean()
+    EMA = pd.Series(EMA, name = 'EMA_' + str(n))
+    df = df.join(EMA)
     return df
 
 #Momentum  
@@ -173,8 +179,6 @@ def Vortex(df, n):
     VI = pd.Series(pd.rolling_sum(pd.Series(VM), n) / pd.rolling_sum(pd.Series(TR), n), name = 'Vortex_' + str(n))  
     df = df.join(VI)  
     return df
-
-
 
 
 

@@ -1,7 +1,7 @@
 import quandl as qd
 import pandas as pd
 import os
-from marketdata.indicators import CloseSMAProvider
+from marketdata.indicators import *
 from marketdata.MarketData import OHLCV
 
 
@@ -41,7 +41,7 @@ class MarketDataProvider:
             else:
                 raise ValueError('unknown source: ' + source)
             
-        print('loading done.')
+        print('Loading done.')
 
     def is_existing_df(self):
         """
@@ -50,7 +50,7 @@ class MarketDataProvider:
         """
         
         if not os.path.exists(MarketDataProvider.local_store_dir):
-            print('local store does not exist, creating directory ' + MarketDataProvider.local_store_dir)
+            print('Local store does not exist, creating directory ' + MarketDataProvider.local_store_dir)
             os.makedirs(MarketDataProvider.local_store_dir)
             
         if os.path.isfile(self.local_store_file):
@@ -70,6 +70,18 @@ class MarketDataProvider:
         
         if (data_type == 'close_sma'):
             return CloseSMAProvider(self.data, kwargs['period'])
+        elif (data_type == 'close_ema'):
+            return CloseEMAProvider(self.data, kwargs['period'])
+        elif (data_type == 'close_macd'):
+            return CloseMACDProvider(self.data, **kwargs)
+        elif (data_type == 'signal_line'):
+            return SignalLineProvider(self.data, **kwargs)
+        elif (data_type == 'macd_diff'):
+            return MACDDifferenceProvider(self.data, **kwargs)
+        elif (data_type == 'close_momentum'):
+            return CloseMomentumProvider(self.data, kwargs['period'])
+        elif (data_type == 'close_roc'):
+            return CloseROCProvider(self.data, kwargs['period'])
         elif (data_type == 'OHLCV'):
             return OHLCV(self.data)
         else:
