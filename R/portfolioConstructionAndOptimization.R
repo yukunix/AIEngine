@@ -96,3 +96,6 @@ PortfolioComparisonData = merge.xts(minSD.returns ,
                                     meanES.returns,
                                     EqualWeightPortfReturns,
                                     SPYReturn)['2014-01-02/2017-08-04']
+chart.CumReturns(PortfolioComparisonData,
+                 main = 'Performance of Various Strategies',
+                 legend.loc = 'topleft')
