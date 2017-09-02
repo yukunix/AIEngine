@@ -2,6 +2,9 @@ from abc import ABCMeta, abstractmethod
 
 
 class MarketData(object, metaclass=ABCMeta):
+
+    def current(self):
+        pass
     
     @abstractmethod
     def next(self):
@@ -24,11 +27,20 @@ class OHLCV(MarketData):
         self.data = df
         self.row_index = 0
 
+    def current(self):
+        return self.open, self.high, self.low, self.close, self.volume
+        
     def next(self):
         if self.row_index < len(self.data):
             self.row_index += 1
             row = self.data.ix[self.row_index - 1]
-            return row['Adj. Open'], row['Adj. High'], row['Adj. Low'], row['Adj. Close'], row['Adj. Volume']
+            
+            self.open = row['Adj. Open']
+            self.high = row['Adj. High']
+            self.low = row['Adj. Low']
+            self.close = row['Adj. Close']
+            self.volume = row['Adj. Volume']
+            return self.open, self.high, self.low, self.close, self.volume
         else:
             raise StopIteration()
 

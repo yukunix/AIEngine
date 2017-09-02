@@ -6,5 +6,6 @@ Created on 7 Jun 2017
 from enum import Enum
 
 class Side(Enum):
-    Buy = 0
-    Sell = 1
+    Buy = 1
+    Sell = -1
+    Hold = 0

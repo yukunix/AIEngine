@@ -21,10 +21,14 @@ class CloseSMAProvider(MarketData):
         self.length = len(data)
         self.current_position = 0
 
+    def current(self):
+        return self.current_sma
+        
     def next(self):
         self.current_position += 1
         if (self.current_position <= self.length):
-            return self.sma[self.current_position - 1]
+            self.current_sma = self.sma[self.current_position - 1]
+            return self.current_sma
         else:
             raise StopIteration()
 
