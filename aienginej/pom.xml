@@ -24,6 +24,11 @@
 
 	<dependencies>
 		<dependency>
+			<groupId>com.lmax</groupId>
+			<artifactId>disruptor</artifactId>
+			<version>3.3.7</version>
+		</dependency>
+		<dependency>
 			<groupId>org.deeplearning4j</groupId>
 			<artifactId>deeplearning4j-core</artifactId>
 			<version>0.7.2</version>
@@ -36,9 +41,9 @@
 		</dependency>
 
 		<dependency>
-		    <groupId>eu.verdelhan</groupId>
-		    <artifactId>ta4j</artifactId>
-		    <version>0.8</version>
+			<groupId>eu.verdelhan</groupId>
+			<artifactId>ta4j</artifactId>
+			<version>0.8</version>
 		</dependency>
 
 		<dependency>
