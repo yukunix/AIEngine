@@ -24,6 +24,13 @@ class ExecutionService(object):
         '''
         raise NotImplemented
     
+    def placeMarket(self, sym, side, consideration):
+        '''
+        place an order to execute all money amount in market price
+        return (executed_price, executed_quantity)
+        '''
+        raise NotImplemented
+    
     def amend(self, order):
         raise NotImplemented
     
@@ -51,4 +58,9 @@ class SingleStockExecutionSimulator(ExecutionService):
             executed_quantity = random.randint(round(quantity*0.8), quantity)
         return (executed_price, executed_quantity)
         
-        
+    def placeMarket(self, sym, side, consideration):
+        ohlcv = self.marketprovider.next()
+        executed_price = (ohlcv[1] + ohlcv[2]) / 2 ## executed at the mid price of the day
+        quantity = consideration / executed_price
+        return self.place(sym, side, quantity, executed_price)
+

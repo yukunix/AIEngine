@@ -2,15 +2,17 @@ package tech.aiforce.aienginej.prediction;
 
 public class Period {
 
-	long start; // inclusive
-	long end; // exclusive
+	private final long start; // inclusive
+	private final long end; // exclusive
+	
+	public Period(long start, long end) {
+		this.start = start;
+		this.end = end;
+	}
 	
 	public Period next() {
-		Period next = new Period();
-		next.start = end;
-		next.end = end + end - start;
-		
-		return next;
+		Period next = new Period(end + end - start, end);
+ 		return next;
 	}
 	
 	public long interval() {

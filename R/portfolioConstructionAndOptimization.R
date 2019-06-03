@@ -1,6 +1,8 @@
 require(PortfolioAnalytics)
+library(quantmod)
 symbol_list = c(
-  "MSFT","AAPL","GOOG","XOM","FB","JNJ","AMZN","GE","WFC","JPM","BAC","T","WMT","PG","CHL","BUD","V")
+  "MSFT","AAPL","GOOG","XOM","FB")
+###"MSFT","AAPL","GOOG","XOM","FB","JNJ","AMZN","GE","WFC","JPM","BAC","T","WMT","PG","CHL","BUD","V")
 getSymbols(symbol_list, from = '2014-01-01')
 getSymbols("SPY", from = '2014-01-01')
 securities_matrix = NULL
@@ -32,7 +34,7 @@ MinimumVariancePortfolio = add.constraint(
   portfolio = MinimumVariancePortfolio,
   type = "box",
   min = 0,
-  max = 0.3
+  max = 0.8
 )
 #Optimization with PortfolioAnalytics
 .storage <- new.env()
@@ -62,17 +64,17 @@ chart.RiskReward(
 MinimumVarianceBT = optimize.portfolio.rebalancing(
   R = securities_matrix,
   MinimumVariancePortfolio,
-  rebalance_on = 'years',
-  training_period = 252,
-  rolling_window = 252
+  rebalance_on = 'months',
+  training_period = 22,
+  rolling_window = 22
 )
 
 MeanVarianceBT = optimize.portfolio.rebalancing(
   R = securities_matrix,
   MeanVariancePortfolio,
-  rebalance_on = 'years',
-  training_period = 252,
-  rolling_window = 252
+  rebalance_on = 'months',
+  training_period = 22,
+  rolling_window = 22
 )
 
 #Using PerformanceAnalytics to compute portfolio returns

@@ -31,6 +31,7 @@ class TradingEnvironment(Environment):
                 }
         '''
         if (kwargs['execution'] == 'single_stock'):
+            self.sym = kwargs['sym']
             self.__executionservice = SingleStockExecutionSimulator(kwargs['sym'], kwargs['start'], kwargs['end'])
             
         if (kwargs['portfolio'] == 'basic'):
@@ -65,10 +66,19 @@ class TradingEnvironment(Environment):
 
         Args:
             action: Action to execute.
+            1 - BUY, 0 - HOLD, -1 - SELL
 
         Returns: tuple of state (tuple), reward (float), and terminal_state (bool).
         """
-        raise NotImplementedError
+        
+        if (action[0] > 0):
+            self.__oms.placeMarket(self.sym, 1, self.__portfolio.cash_value())
+        elif (action[0] < 0):
+            self.__oms.placeMarket(self.sym, -1, self.__portfolio.position_value(self.sym))
+        else:
+            self.__oms.no_operation(self.sym)
+            
+        
     
     def reset(self):
         """
@@ -76,13 +86,13 @@ class TradingEnvironment(Environment):
 
         Returns: initial state of resetted environment.
         """
-        raise NotImplementedError
+        pass
 
     def close(self):
         """
         Close environment. No other method calls possible afterwards.
         """
-        raise NotImplementedError
+        pass
 
     def __str__(self):
         return 'TradingEnvironment'
