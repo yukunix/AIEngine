@@ -5,7 +5,7 @@ Created on 17 May 2017
 '''
 
 import random
-from marketdata.MarketData import OHLCV
+from marketdata.MarketData import MarketData
 from marketdata.provider import MarketDataProvider
 
 class ExecutionService(object):
@@ -42,15 +42,14 @@ class SingleStockExecutionSimulator(ExecutionService):
     A simple execution simulator for trading a stock
     '''
         
-    def __init__(self, sym, start, end):
-        marketdata = MarketDataProvider('quandl', sym, start, end)
-        self.marketprovider = OHLCV(marketdata)
+    def __init__(self, sym, start, end, OHLCV):
+        self.marketdata = OHLCV
         
     def no_operation(self, sym):
-        self.marketprovider.next()
+        pass
         
     def place(self, sym, side, quantity, price):
-        ohlcv = self.marketprovider.next()
+        ohlcv = self.marketdata.next() ### change to call current() !!!!!
         executed_price = (ohlcv[1] + ohlcv[2]) / 2 ## executed at the mid price of the day
         if (random.random() <= 0.9):
             executed_quantity = quantity

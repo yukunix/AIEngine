@@ -33,7 +33,7 @@ public class Trader {
 	
 	public void startTrade() {
 		
-		Market market = marketDataFeed.nextMarketDate();
+		Market market = marketDataFeed.nextMarketData();
 		while (market != null) {
 			String sym = market.getSym();
 			Position position = positionManager.get(sym);
@@ -45,7 +45,7 @@ public class Trader {
 			
 			positionManager.add(execution);
 			
-			market = marketDataFeed.nextMarketDate();
+			market = marketDataFeed.nextMarketData();
 		}
 		
 	}

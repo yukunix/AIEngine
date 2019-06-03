@@ -1,108 +1,101 @@
-require(PortfolioAnalytics)
+library(PortfolioAnalytics)
 library(quantmod)
-symbol_list = c(
-  "MSFT","AAPL","GOOG","XOM","FB")
-###"MSFT","AAPL","GOOG","XOM","FB","JNJ","AMZN","GE","WFC","JPM","BAC","T","WMT","PG","CHL","BUD","V")
-getSymbols(symbol_list, from = '2014-01-01')
-getSymbols("SPY", from = '2014-01-01')
-securities_matrix = NULL
-for (sym in symbol_list) {
-  securities_matrix = merge.xts(securities_matrix,
-                                Return.calculate(Ad(get(paste(
-                                  sym
-                                ))),
-                                method = 'discrete'))
+library(PerformanceAnalytics)
+library(zoo)
+library(plotly)
+if (!exists("prices.data")) {
+  funds <- c("MSFT",  "AAPL", "GOOG", "XOM", "FB")
+  getSymbols(funds, from = '2014-01-01')
+  prices.data <-
+    merge.zoo(MSFT[, 6],  AAPL[, 6], GOOG[, 6], XOM[, 6], FB[, 6])
+  #prices.data <- merge.zoo(MSFT[,6],  AAPL[,6],GOOG[,6],XOM[,6],FB[,6],JNJ[,6],AMZN[,6],GE[,6],WFC[,6],JPM[,6],BAC[,6],T[,6],WMT[,6],PG[,6],CHL[,6],BUD[,6],V[,6])
+  getSymbols("SPY", from = '2014-01-01')
+  SPYReturn = Return.calculate(Ad(SPY), method = 'discrete')
+ 
 }
-securities_matrix = securities_matrix[complete.cases(securities_matrix)]
-SPYReturn = Return.calculate(Ad(SPY), method = 'discrete')
-View(securities_matrix)
-chart.CumReturns(securities_matrix, main = "Matrix")
-#An Example of PortfolioAnalytics - Minimum Variance
-MinimumVariancePortfolio = portfolio.spec(assets = colnames(securities_matrix))
 
-MinimumVariancePortfolio = add.objective(portfolio = MinimumVariancePortfolio,
-                                         type = 'risk',
-                                         name = 'StdDev')
-#An Example of PortfolioAnalytics - Setting up Constraints
-MinimumVariancePortfolio = add.constraint(portfolio = MinimumVariancePortfolio,
-                                          type = "full_investment")
 
-MinimumVariancePortfolio = add.constraint(portfolio = MinimumVariancePortfolio,
-                                          type = "long_only")
+# Calculate returns
+returns.data <-
+  Return.calculate(prices = prices.data, method =  c("discrete", "log"))
+returns.data <- na.omit(returns.data)
+# Set names
 
-MinimumVariancePortfolio = add.constraint(
-  portfolio = MinimumVariancePortfolio,
-  type = "box",
-  min = 0,
-  max = 0.8
+
+# Save mean return vector and sample covariance matrx
+meanReturns <- colMeans(returns.data)
+#returns <- edhec[, 1:6]
+#funds <- colnames(returns)
+init.portfolio <- portfolio.spec(assets = funds)
+print.default(init.portfolio)
+init.portfolio <-
+  add.constraint(portfolio = init.portfolio, type = "full_investment")
+init.portfolio <-
+  add.constraint(portfolio = init.portfolio, type = "long_only")
+# Add objective for portfolio to minimize portfolio standard deviation
+minSD.portfolio <- add.objective(portfolio = init.portfolio,
+                                 type = "risk",
+                                 name = "StdDev")
+
+# Add objectives for portfolio to maximize mean per unit ES
+meanES.portfolio <- add.objective(portfolio = init.portfolio,
+                                  type = "return",
+                                  name = "mean")
+
+meanES.portfolio <- add.objective(portfolio = meanES.portfolio,
+                                  type = "risk",
+                                  name = "ES")
+
+
+# Run the optimization for the minimum standard deviation portfolio
+minSD.opt <-
+  optimize.portfolio(
+    R = returns.data,
+    portfolio = minSD.portfolio,
+    optimize_method = "ROI",
+    trace = TRUE
+  )
+
+print(minSD.opt)
+
+# Run the optimization for the maximize mean per unit ES
+meanES.opt <-
+  optimize.portfolio(
+    R = returns.data,
+    portfolio = meanES.portfolio,
+    optimize_method = "ROI",
+    trace = TRUE
+  )
+
+print(meanES.opt)
+
+plot(
+  minSD.opt,
+  risk.col = "StdDev",
+  chart.assets = TRUE,
+  main = "Min SD Optimization",
+  ylim = c(0, 0.0083),
+  xlim = c(0, 0.06)
 )
-#Optimization with PortfolioAnalytics
-.storage <- new.env()
-OptimizedPortfolioMinVariance = optimize.portfolio(R = securities_matrix,
-                                                   
-                                                   portfolio = MinimumVariancePortfolio,
-                                                   trace = TRUE)
-chart.Weights(OptimizedPortfolioMinVariance)
 
-#Mean Variance Optimization
-MeanVariancePortfolio = add.objective(portfolio = MinimumVariancePortfolio,
-                                      type = 'return',
-                                      name = 'mean')
-OptimizedPortfolioMeanVariance = optimize.portfolio(R = securities_matrix,
-                                                    portfolio = MeanVariancePortfolio,
-                                                    trace = TRUE)
-chart.Weights(OptimizedPortfolioMeanVariance)
-#Risk to Return Analysis
-chart.RiskReward(
-  OptimizedPortfolioMeanVariance,
-  return.col = 'mean',
-  risk.col = 'StdDev',
-  main = 'Risk to Return Plot of various Portfolio Combinations'
+plot(
+  meanES.opt,
+  chart.assets = TRUE,
+  main = "Mean ES Optimization",
+  ylim = c(0, 0.0083),
+  xlim = c(0, 0.16)
 )
-#Backtesting with PortfolioAnalytics
-
-MinimumVarianceBT = optimize.portfolio.rebalancing(
-  R = securities_matrix,
-  MinimumVariancePortfolio,
-  rebalance_on = 'months',
-  training_period = 22,
-  rolling_window = 22
-)
-
-MeanVarianceBT = optimize.portfolio.rebalancing(
-  R = securities_matrix,
-  MeanVariancePortfolio,
-  rebalance_on = 'months',
-  training_period = 22,
-  rolling_window = 22
-)
-
-#Using PerformanceAnalytics to compute portfolio returns
-
-MinVariancePortfReturns = Return.rebalancing(R = securities_matrix,
-                                             weights = extractWeights(MinimumVarianceBT))
-colnames(MinVariancePortfReturns) = c('MinVariancePortfReturns')
-MeanVariancePortfReturns = Return.rebalancing(R = securities_matrix,
-                                              weights = extractWeights(MeanVarianceBT))
-colnames(MeanVariancePortfReturns) = c('MeanVariancePortfReturns')
-EqualWeightPortfReturns = Return.rebalancing(R = securities_matrix)
-colnames(EqualWeightPortfReturns) = c('EqualWeightPortfReturns')
-
+EqualWeightPortfReturns = Return.rebalancing(R = returns.data)
+colnames(EqualWeightPortfReturns) <- c("equalweight")
+minSD.returns = Return.rebalancing(R = returns.data, weights = extractWeights(minSD.opt))
+colnames(minSD.returns) <- c("minReturn")
+meanES.returns = Return.rebalancing(R = returns.data, weights = extractWeights(meanES.opt))
 #Analysing our portfolios
-
-PortfolioComparisonData = merge.xts(
-  MinVariancePortfReturns,
-  MeanVariancePortfReturns,
-  EqualWeightPortfReturns,
-  SPYReturn
-)['2014-01-01/2017-07-27']
+colnames(meanES.returns) <- c("meanESReturns")
+PortfolioComparisonData = merge.xts(minSD.returns ,
+                                    meanES.returns,
+                                    EqualWeightPortfReturns,
+                                    SPYReturn)['2014-01-02/2017-08-04']
 chart.CumReturns(PortfolioComparisonData,
                  main = 'Performance of Various Strategies',
                  legend.loc = 'topleft')
-
-#Analysing our portfolios - Functions
-
-table.AnnualizedReturns(PortfolioComparisonData)
-maxDrawdown(PortfolioComparisonData)
-table.CAPM(PortfolioComparisonData[, 1:3],
-           PortfolioComparisonData[, 4])[c(2, 6, 9, 10, 11, 12), ]

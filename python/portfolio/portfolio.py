@@ -35,33 +35,24 @@ class Portfolio(object):
         else:
             self.positions[sym] = self.positions.get(sym, 0) - quantity
             self.cash += consideration
-        
-        
     
-    def market_value(self):
-        '''
-        get marked to market value of the portfolio, including both positions and cash
-        return $
-        '''
-        pass
-    
-    def cash_value(self):
+    def cash(self):
         '''
         get current available cash of the portoflio
         return $
         '''
-        pass
+        return self.cash
     
-    def position_value(self, sym):
+    def position(self, sym):
         '''
-        get marked to market value of a stock in the portfolio
+        get the quantity of a stock in the portfolio
         return $
         '''
-        pass
+        return self.positions.get(sym, 0)
     
     def portfolio_value(self):
         '''
-        use valuer instead
+        Deprecated!!! Use valuer instead
         
         A value to measure the portfolio, for example, 
         Sharpe ratio(return to volatility), Sortino ratio(return to downside deviation), 
@@ -70,14 +61,3 @@ class Portfolio(object):
         '''
         pass
     
-
-class SharpePortfolio(Portfolio):
-    
-    def portfolio_value(self):
-        '''
-        use valuer instead
-        
-        return Sharpe ratio of the portfolio
-        '''
-        pass
-            
