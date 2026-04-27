@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aiengine/contracts/market_bar/1.0.0",
+  "title": "Market Bar",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "event_id",
+    "as_of_time",
+    "ingested_at",
+    "source_name",
+    "source_record_id",
+    "schema_version",
+    "instrument_id",
+    "bar_time",
+    "open",
+    "high",
+    "low",
+    "close",
+    "volume"
+  ],
+  "properties": {
+    "event_id": { "type": "string", "format": "uuid" },
+    "as_of_time": { "type": "string", "format": "date-time" },
+    "ingested_at": { "type": "string", "format": "date-time" },
+    "source_name": { "type": "string" },
+    "source_record_id": { "type": "string" },
+    "schema_version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "instrument_id": { "type": "string" },
+    "bar_time": { "type": "string", "format": "date-time" },
+    "interval": { "type": "string", "enum": ["1m", "5m", "15m", "1h", "1d", "1w", "1mo"] },
+    "open": { "type": "number" },
+    "high": { "type": "number" },
+    "low": { "type": "number" },
+    "close": { "type": "number" },
+    "adj_close": { "type": ["number", "null"] },
+    "volume": { "type": "number", "minimum": 0 },
+    "vwap": { "type": ["number", "null"] }
+  }
+}

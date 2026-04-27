@@ -235,3 +235,9 @@ If you want to start quickly on AWS:
 6. Simple React dashboard with API Gateway + ECS backend.
 
 This gives a practical path from raw ingestion to explainable investment recommendations while keeping an upgrade path to advanced portfolio optimization and execution integration.
+
+---
+
+## 14) Execution status
+- **Completed**: Phase 0, Step 1 (define canonical schemas and data contracts).
+- Deliverables are stored under `docs/contracts/`.

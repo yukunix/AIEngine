@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aiengine/contracts/fundamentals_snapshot/1.0.0",
+  "title": "Fundamentals Snapshot",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "event_id",
+    "as_of_time",
+    "ingested_at",
+    "source_name",
+    "source_record_id",
+    "schema_version",
+    "instrument_id",
+    "period_end",
+    "period_type",
+    "currency"
+  ],
+  "properties": {
+    "event_id": { "type": "string", "format": "uuid" },
+    "as_of_time": { "type": "string", "format": "date-time" },
+    "ingested_at": { "type": "string", "format": "date-time" },
+    "source_name": { "type": "string" },
+    "source_record_id": { "type": "string" },
+    "schema_version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "instrument_id": { "type": "string" },
+    "period_end": { "type": "string", "format": "date" },
+    "period_type": { "type": "string", "enum": ["quarterly", "annual", "ttm"] },
+    "currency": { "type": "string", "minLength": 3, "maxLength": 3 },
+    "revenue": { "type": ["number", "null"] },
+    "ebitda": { "type": ["number", "null"] },
+    "net_income": { "type": ["number", "null"] },
+    "eps": { "type": ["number", "null"] },
+    "free_cash_flow": { "type": ["number", "null"] },
+    "debt_to_equity": { "type": ["number", "null"] },
+    "roe": { "type": ["number", "null"] }
+  }
+}
