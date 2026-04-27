@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aiengine/contracts/portfolio_snapshot/1.0.0",
+  "title": "Portfolio Snapshot",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "event_id",
+    "as_of_time",
+    "ingested_at",
+    "source_name",
+    "source_record_id",
+    "schema_version",
+    "portfolio_id",
+    "base_currency",
+    "positions"
+  ],
+  "properties": {
+    "event_id": { "type": "string", "format": "uuid" },
+    "as_of_time": { "type": "string", "format": "date-time" },
+    "ingested_at": { "type": "string", "format": "date-time" },
+    "source_name": { "type": "string" },
+    "source_record_id": { "type": "string" },
+    "schema_version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "portfolio_id": { "type": "string" },
+    "base_currency": { "type": "string", "minLength": 3, "maxLength": 3 },
+    "cash": { "type": ["number", "null"] },
+    "positions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["instrument_id", "quantity", "market_value", "weight"],
+        "properties": {
+          "instrument_id": { "type": "string" },
+          "quantity": { "type": "number" },
+          "cost_basis": { "type": ["number", "null"] },
+          "market_value": { "type": "number" },
+          "weight": { "type": "number", "minimum": 0, "maximum": 1 }
+        }
+      }
+    }
+  }
+}

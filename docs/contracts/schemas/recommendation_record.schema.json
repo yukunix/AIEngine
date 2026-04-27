@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aiengine/contracts/recommendation_record/1.0.0",
+  "title": "Recommendation Record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "event_id",
+    "as_of_time",
+    "ingested_at",
+    "source_name",
+    "source_record_id",
+    "schema_version",
+    "recommendation_id",
+    "portfolio_id",
+    "instrument_id",
+    "action",
+    "priority",
+    "confidence",
+    "rationale"
+  ],
+  "properties": {
+    "event_id": { "type": "string", "format": "uuid" },
+    "as_of_time": { "type": "string", "format": "date-time" },
+    "ingested_at": { "type": "string", "format": "date-time" },
+    "source_name": { "type": "string" },
+    "source_record_id": { "type": "string" },
+    "schema_version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "recommendation_id": { "type": "string" },
+    "portfolio_id": { "type": "string" },
+    "instrument_id": { "type": "string" },
+    "action": { "type": "string", "enum": ["add", "reduce", "hold", "watchlist", "exit"] },
+    "target_weight": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+    "priority": { "type": "integer", "minimum": 1, "maximum": 5 },
+    "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+    "risk_impact": { "type": ["string", "null"], "enum": ["low", "medium", "high", null] },
+    "rationale": { "type": "string", "minLength": 1 },
+    "evidence_refs": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "approval_status": {
+      "type": "string",
+      "enum": ["draft", "review", "approved", "rejected", "expired"]
+    }
+  }
+}

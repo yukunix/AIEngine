@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aiengine/contracts/news_event/1.0.0",
+  "title": "News Event",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "event_id",
+    "as_of_time",
+    "ingested_at",
+    "source_name",
+    "source_record_id",
+    "schema_version",
+    "published_at",
+    "headline",
+    "sentiment_score",
+    "relevance_score",
+    "entities"
+  ],
+  "properties": {
+    "event_id": { "type": "string", "format": "uuid" },
+    "as_of_time": { "type": "string", "format": "date-time" },
+    "ingested_at": { "type": "string", "format": "date-time" },
+    "source_name": { "type": "string" },
+    "source_record_id": { "type": "string" },
+    "schema_version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "published_at": { "type": "string", "format": "date-time" },
+    "headline": { "type": "string", "minLength": 1 },
+    "summary": { "type": ["string", "null"] },
+    "url": { "type": ["string", "null"], "format": "uri" },
+    "sentiment_score": { "type": "number", "minimum": -1, "maximum": 1 },
+    "relevance_score": { "type": "number", "minimum": 0, "maximum": 1 },
+    "entities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["entity_type", "entity_id", "confidence"],
+        "properties": {
+          "entity_type": { "type": "string", "enum": ["instrument", "company", "macro", "person", "topic"] },
+          "entity_id": { "type": "string" },
+          "confidence": { "type": "number", "minimum": 0, "maximum": 1 }
+        }
+      }
+    }
+  }
+}
